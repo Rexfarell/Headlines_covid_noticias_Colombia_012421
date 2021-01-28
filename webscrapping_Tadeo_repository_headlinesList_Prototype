@@ -1,0 +1,68 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Tue Jan 26 15:08:24 2021
+ 
+@author: Eric Ávila Torres, rexfarell@gmail.com
+ 
+webscraping a covid repository
+This baby contains 2 methods: printing and saving  scraped data
+ 
+ 
+Just one remaining bug/feature? in this version: the saving method will overwrite data everytime it is run.
+ 
+The final list will have the selected headlines separated by multiple \n. The easiest way to deal with this is using notepad++/ edit/ line operations
+# -*- coding: utf-8 -*-
+ 
+"""
+ 
+from urllib.request import urlopen
+from bs4 import BeautifulSoup
+ 
+import sys  
+# the setrecursionlimit function is 
+# used to modify the default recursion 
+# limit set by python. Using this,  
+# we can increase the recursion limit 
+# to satisfy our needs  
+sys.setrecursionlimit(10**6)# This line is not essential, I used it at some point to be able to print the whole results on screen. The original value is (10**4)
+ 
+headlinesWithtags=[]
+contentWithWrongEncoding=[]
+ 
+h4_entries=[]
+for page in range(2):      # Number of pages plus one
+    # the format is iterated to match the pagination>>>
+    html = urlopen("https://expeditiorepositorio.utadeo.edu.co/handle/20.500.12010/11350/recent-submissions?offset={}".format(page))
+    soup = BeautifulSoup(html, 'html.parser')
+    # print(soup.h4.get_text()) # uncomment to print results on start.
+    h4_entries.append(soup.find("h4")) #gets all the headlines. 
+    headlinesWithtags.append(h4_entries) 
+    
+import os.path
+     
+# Saves the headlines to relative path
+cleanHeadlines= []
+def savetodisk(): # saves the content to disk after setting utf-8 and removing tags
+    
+ 
+    for entry in h4_entries:
+        contentWithWrongEncoding.append(entry.get_text()) 
+        
+        
+    for item in contentWithWrongEncoding: 
+        cleanHeadlines.append(item.encode("utf-8").decode("utf-8"))
+        #print("!!!!!",item)
+    
+    if os.path.isfile("Covid_Tadeo_Noticias_Colombia_dataset.txt"):
+        print("fileName already exists")
+    with open("Covid_Tadeo_Noticias_Colombia_dataset.txt", "w+", encoding="utf-8") as f:
+        for item in contentWithWrongEncoding:
+            item.encode("utf-8-sig").decode("utf-8")
+            f.write(str(item))
+        
+    print("file saved")
+    print("Headlines Scrapped >>>>>>",cleanHeadlines)
+ 
+def printsData():
+    for item in h4_entries:
+        print(item.get_text())
