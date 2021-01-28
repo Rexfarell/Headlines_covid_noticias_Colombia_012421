@@ -1,0 +1,100 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Fri Jan  8 13:20:21 2021
+news source: the repository of Tadeo university about covid-19 news in Colombia
+@author: Eric
+ 
+This script will create a local server on http://localhost:5000/ to visualize
+Additional notes in the script Spacy_CompletePipelineModel1esp in your working dir
+ 
+Notes:
+ 
+Beware that this script does not include a method to find bigrams, which yields a suboptimal output. 
+ 
+I believe The Dependency Visualization in this data set is not very meaningful, since the data set is simply a 
+list of headlines.
+ 
+The number of topics should probably adjusted to a much higher value to squeeze more topics.
+ 
+ 
+ 
+ 
+ 
+"""
+ 
+from collections import defaultdict
+from gensim import corpora
+import spacy
+from spacy import displacy
+from pathlib import Path
+ 
+nlp=spacy.load("es_core_news_lg")
+#To add several stopwords at once:
+nlp.Defaults.stop_words |= {"y","a"}
+docs = [ open("Covid_Tadeo_NewsHeadlines_Colombia_dataset_012721_v01.txt", encoding='utf-8').read()]
+ 
+#preprocessing(tokenization, cleaning, pos, lemmatizing)
+texts=[]
+doc=[]
+for doc in docs:
+    text=[]
+    doc=nlp(doc)
+    for w in doc:
+        if not w.is_stop and not w.is_punct and not w.like_num:
+            print("text/pos/tag>>>>",w.text, w.pos_,w.tag) 
+            text.append(w.lemma_)
+    texts.append(text)
+# Name Entity Recognition
+for ent in doc.ents:
+   print("NER>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>",ent.text, ent.label_) 
+# Name Entity Recognition visualization
+doc.user_data["title"] = "Covid dataset from Colombia (NER)"
+displacy.serve(doc, style="ent")
+ 
+# remove words that appear only once
+frequency = defaultdict(int)
+for text in texts:
+    for token in text:
+        frequency[token] += 1
+ 
+texts = [[token for token in text if frequency[token] > 1]for text in texts]
+ 
+#This implements the concept of a Dictionary,
+# a mapping between words and their integer ids.
+dictionary = corpora.Dictionary(texts)
+corpus = [dictionary.doc2bow(text) for text in texts]
+ 
+ 
+#Available Vector Space Model algorithms in Gensim:
+#NOTE:so far, they only print when the script is stopped and the server port on port 5000 is shut down.
+from gensim import models
+tfidf_model = models.TfidfModel(corpus, normalize=True)
+ 
+ldamodel = models.LdaModel(corpus=corpus, num_topics=5, id2word=dictionary)
+lsi_model = models.LsiModel(corpus, id2word=dictionary, num_topics=5)
+hdpmodel = models.HdpModel(corpus=corpus, id2word=dictionary)
+ 
+print("lda >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>",ldamodel.show_topics(num_topics=5))
+print("lsi>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>",lsi_model.show_topics(num_topics=5))
+print("hdp>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>",hdpmodel.show_topics())
+ 
+#Dependency Visualization
+svg = displacy.render([doc], style="dep", jupyter=False)
+output_path = Path("covid_headlines_Colombia_012421_nlp_dependency_visualization.svg")
+output_path.open("w", encoding="utf-8").write(svg)  
+ 
+#Remember, texts contain the tokenized and cleaned version of the original text data
+#the corpus is our bag of words representation
+#and in case you want to inspect the data use the following:
+ 
+texts [0][0:10]
+corpus
+corpus[0][0:10]
+  
+dictionary.doc2bow(["covid"])
+dictionary.token2id["covid"]
+dictionary[19]
+#print("list of all texts>>>>",texts)
+#print("first text>>>>",texts[0])
+#Note: To see the current set of stopwords, use:
+#print(nlp.Defaults.stop_words)
