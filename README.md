@@ -6,3 +6,4 @@ A set of headlines about covid-19 published in Colombian media and web scraped f
 3. The final list will have the selected headlines separated by multiple \n. and some undesired residual encodings. The easiest way to deal with that is using notepad++/ edit/ line operations.
 
 4.A model to extract bigrams is include in the script Gensim_Spacy_Bigrams_Model
+5.covid_headlines_Gensim_Spacy_topicModeling_LDA_prototype  extracts topics from the dataset along other text analysis functions.
