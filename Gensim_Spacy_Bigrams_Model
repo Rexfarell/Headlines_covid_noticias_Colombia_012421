@@ -1,0 +1,41 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Wed Jan 13 11:33:50 2021
+finds bigrams in 
+a dataset that I web scraped
+from Tadeo´s repository of Colombian news about covid'19, around 900 headlines.
+@author: Eric
+"""
+import spacy
+import gensim
+ 
+text= open("Covid_Tadeo_NewsHeadlines_Colombia_dataset_012721_v01.txt",encoding="utf-8").read() 
+nlp=spacy.load("es_core_news_lg")
+ 
+my_stop_words = [u'decir', u'\'s', u'mr', u'ser', u'dicho']
+for stopword in my_stop_words:
+    lexeme = nlp.vocab[stopword]
+    lexeme.is_stop = True
+ 
+doc = nlp(text.lower())
+ 
+# we add some words to the stop word list
+texts, article = [], []
+for w in doc:
+    # if it's not a stop word or punctuation mark, add it to our article!
+    if w.text != '\n\n' and not w.is_stop and not w.is_punct and not w.like_num and w.text != 'yo':
+        # we add the lematized version of the word
+        article.append(w.lemma_)
+    # if it's a new line, it means we're onto our next document
+    if w.text == '\n\n':
+        texts.append(article)
+        article = []
+ 
+bigram_model = gensim.models.Phrases(texts)
+texts=[bigram_model[line] for line in texts]
+#texts[0:20]
+ 
+for ngrams, _ in bigram_model.vocab.items():
+    unicode_ngrams = ngrams.decode('utf-8')
+    if '_' in unicode_ngrams:
+        print(unicode_ngrams)
