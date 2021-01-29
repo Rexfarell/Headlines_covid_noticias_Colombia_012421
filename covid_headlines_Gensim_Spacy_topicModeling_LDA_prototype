@@ -13,8 +13,6 @@ from spacy import displacy
 from pathlib import Path
 from gensim.models import LdaModel
  
- 
- 
 text= open("Covid_headlines.txt",encoding="utf-8").read() 
 nlp=spacy.load("es_core_news_lg")
  
@@ -79,14 +77,15 @@ num_topics = 10
 chunksize = 2000
 passes = 30
 iterations = 400
-eval_every = None  # Don't evaluate model perplexity, takes too much time.
+eval_every = 10  #  evaluating model perplexity takes too long. you can avoid it by passing None
 random_state=100
+alpha='symmetric' # auto and asymmetric are the other options
 #Training the model
 lda_model = LdaModel(
     corpus=corpus,
     id2word=dictionary,
     chunksize=chunksize,
-    alpha='auto',
+    alpha=alpha,
     eta='auto',
     minimum_probability=0.01,
     iterations=iterations,
@@ -96,7 +95,11 @@ lda_model = LdaModel(
     eval_every=eval_every
 )
 print("LDA")
-print(lda_model.show_topics())
+ 
+#parameters for show_topics
+log=True # Whether the output is also logged, besides being returned.
+num_words=5 #Number of words to be presented for each topic. These will be the most relevant words (assigned the highest probability for each topic).
+print(lda_model.show_topics(num_words=num_words,log=log )) 
 print( "Voilà, your yopic model is ready")
  
 #Dependency Visualization
